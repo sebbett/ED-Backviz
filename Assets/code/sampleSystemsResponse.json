@@ -1,0 +1,176 @@
+{
+  //Sample response from https://elitebgs.app/api/ebgs/v5/systems?name=sol&name=v886%20centauri
+  "docs": [
+    {
+      "_id": "59e7a690d22c775be0fe1e4a",
+      "__v": 0,
+      "allegiance": "federation",
+      "conflicts": [],
+      "controlling_minor_faction": "mother gaia",
+      "controlling_minor_faction_cased": "Mother Gaia",
+      "controlling_minor_faction_id": "59e7a690d22c775be0fe1e50",
+      "eddb_id": 17072,
+      "factions": [
+        {
+          "name": "Federal Congress",
+          "name_lower": "federal congress",
+          "faction_id": "59e7a690d22c775be0fe1e4c"
+        },
+        {
+          "name": "Sol Workers' Party",
+          "name_lower": "sol workers' party",
+          "faction_id": "59e7a690d22c775be0fe1e4e"
+        },
+        {
+          "name": "Sol Constitution Party",
+          "name_lower": "sol constitution party",
+          "faction_id": "59e7a690d22c775be0fe1e54"
+        },
+        {
+          "name": "Mother Gaia",
+          "name_lower": "mother gaia",
+          "faction_id": "59e7a690d22c775be0fe1e50"
+        },
+        {
+          "name": "Sol Nationalists",
+          "name_lower": "sol nationalists",
+          "faction_id": "59e7a690d22c775be0fe1e56"
+        },
+        {
+          "name": "Aegis Core",
+          "name_lower": "aegis core",
+          "faction_id": "59ed9e89d22c775be0e6ffcb"
+        }
+      ],
+      "government": "$government_democracy;",
+      "name": "Sol",
+      "name_lower": "sol",
+      "population": 22780919531,
+      "primary_economy": "$economy_refinery;",
+      "secondary_economy": "$economy_service;",
+      "security": "$system_security_high;",
+      "state": "none",
+      "system_address": "10477373803",
+      "updated_at": "2023-06-18T05:19:20.000Z",
+      "x": 0,
+      "y": 0,
+      "z": 0,
+      "name_aliases": []
+    },
+    {
+      "_id": "59e7b981d22c775be0fe8589",
+      "__v": 0,
+      "allegiance": "federation",
+      "conflicts": [
+        {
+          "type": "civilwar",
+          "status": "active",
+          "faction1": {
+            "faction_id": "59e7b981d22c775be0fe85a0",
+            "name": "Bureau of V886 Centauri",
+            "name_lower": "bureau of v886 centauri",
+            "station_id": "60f826948c6309f8d8904277",
+            "stake": "Johnson's Analytics",
+            "stake_lower": "johnson's analytics",
+            "days_won": 0
+          },
+          "faction2": {
+            "faction_id": "5ae4c3bed1b6a37c3c94d24f",
+            "name": "Law of Demeter",
+            "name_lower": "law of demeter",
+            "station_id": null,
+            "stake": "",
+            "stake_lower": "",
+            "days_won": 0
+          }
+        },
+        {
+          "type": "civilwar",
+          "status": "active",
+          "faction1": {
+            "faction_id": "59e7b981d22c775be0fe85a3",
+            "name": "V886 Centauri Corporation",
+            "name_lower": "v886 centauri corporation",
+            "station_id": null,
+            "stake": "Levi-Montalcini Observatory",
+            "stake_lower": "levi-montalcini observatory",
+            "days_won": 0
+          },
+          "faction2": {
+            "faction_id": "59e7b981d22c775be0fe85a6",
+            "name": "United V886 Centauri Autocracy",
+            "name_lower": "united v886 centauri autocracy",
+            "station_id": "610a5eae8c6309f8d8b1078e",
+            "stake": "Suzuki Industrial Foundry",
+            "stake_lower": "suzuki industrial foundry",
+            "days_won": 0
+          }
+        }
+      ],
+      "controlling_minor_faction": "v886 centauri future",
+      "controlling_minor_faction_cased": "V886 Centauri Future",
+      "controlling_minor_faction_id": "59e7a6fbd22c775be0fe2968",
+      "eddb_id": 18387,
+      "factions": [
+        {
+          "name": "Gnowee Independent Consulate",
+          "name_lower": "gnowee independent consulate",
+          "faction_id": "59e7b981d22c775be0fe85a5"
+        },
+        {
+          "name": "V886 Centauri Future",
+          "name_lower": "v886 centauri future",
+          "faction_id": "59e7a6fbd22c775be0fe2968"
+        },
+        {
+          "name": "Bureau of V886 Centauri",
+          "name_lower": "bureau of v886 centauri",
+          "faction_id": "59e7b981d22c775be0fe85a0"
+        },
+        {
+          "name": "V886 Centauri Corporation",
+          "name_lower": "v886 centauri corporation",
+          "faction_id": "59e7b981d22c775be0fe85a3"
+        },
+        {
+          "name": "V886 Centauri Family",
+          "name_lower": "v886 centauri family",
+          "faction_id": "59e7b981d22c775be0fe859f"
+        },
+        {
+          "name": "United V886 Centauri Autocracy",
+          "name_lower": "united v886 centauri autocracy",
+          "faction_id": "59e7b981d22c775be0fe85a6"
+        },
+        {
+          "name": "Law of Demeter",
+          "name_lower": "law of demeter",
+          "faction_id": "5ae4c3bed1b6a37c3c94d24f"
+        }
+      ],
+      "government": "$government_democracy;",
+      "name": "V886 Centauri",
+      "name_lower": "v886 centauri",
+      "population": 5328590,
+      "primary_economy": "$economy_refinery;",
+      "secondary_economy": "$economy_industrial;",
+      "security": "$system_security_high;",
+      "state": "boom",
+      "system_address": "2931071912299",
+      "updated_at": "2023-06-18T04:09:54.000Z",
+      "x": 45.15625,
+      "y": 12.125,
+      "z": 26.96875,
+      "name_aliases": []
+    }
+  ],
+  "total": 2,
+  "limit": 10,
+  "page": 1,
+  "pages": 1,
+  "pagingCounter": 1,
+  "hasPrevPage": false,
+  "hasNextPage": false,
+  "prevPage": null,
+  "nextPage": null
+}
