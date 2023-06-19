@@ -13,9 +13,9 @@ namespace eds
             return JsonConvert.DeserializeObject<System>(json);
         }
 
-        public static Faction FactionFromJson(string docJsonString)
+        public static Faction FactionFromJson(string json)
         {
-            throw new NotImplementedException();
+            return JsonConvert.DeserializeObject<Faction>(json);
         }
     }
     [global::System.Serializable]

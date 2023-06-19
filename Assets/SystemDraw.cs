@@ -11,30 +11,49 @@ public class SystemDraw : MonoBehaviour
 {
     public float scrollSensitivity = 0.1f;
     public string json;
-    private Camera mainCamera;
     public string[] requests;
+    public GameObject prefab;
 
     private void Awake()
     {
         GameManager.Events.updateSystems += updateSystems;
+        GameManager.Events.updateFactions += updateFactions;
+    }
+
+    private void updateFactions(Faction[] factions)
+    {
+        foreach(Faction f in factions)
+        {
+            Debug.Log($"{f.name} : {f._id}");
+            List<string> systemRequests = new List<string>();
+            foreach(Faction.FactionPresence p in f.faction_presence)
+            {
+                systemRequests.Add(p.system_id);
+            }
+
+            if(systemRequests.Count > 0)
+            {
+                _ = Requests.GetSystemByID(systemRequests.ToArray());
+            }
+        }
     }
 
     private void updateSystems(eds.System[] systems)
     {
         foreach(eds.System sys in systems)
         {
-            Debug.Log(sys.name);
+            Instantiate(prefab, sys.position, Quaternion.identity);
         }
     }
 
     private void Start()
     {
-        StartCoroutine("MakeRequest");
+        MakeRequest();
     }
 
-    private IEnumerator MakeRequest()
+    private void MakeRequest()
     {
-        yield return new WaitForSeconds(5);
-        _ = Requests.GetSystemByName(requests);
+        Debug.Log($"MakeRequest(): {requests[0]}");
+        _ = Requests.GetFactionByName(requests);
     }
 }

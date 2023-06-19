@@ -4,14 +4,18 @@ using System.Collections;
 [AddComponentMenu("Camera-Control/Mouse Orbit with zoom")]
 public class MouseOrbit : MonoBehaviour
 {
-    public Transform target;
-    public float distance = 5.0f;
+    public Vector3 target;
+    
     public float xSpeed = 120.0f;
     public float ySpeed = 120.0f;
-    public float zSpeed = 20.0f;
 
     public float yMinLimit = -80f;
     public float yMaxLimit = 80f;
+
+    public float distance = 5.0f;
+    public float distanceMin, distanceMax;
+    public float scrollSpeed = 1.0f;
+    public float viewScale = 0.5f;
 
     public Vector2 firstMousePosition;
     public int unlockThreshold = 5;
@@ -62,10 +66,13 @@ public class MouseOrbit : MonoBehaviour
 
         Quaternion rotation = Quaternion.Euler(y, x, 0);
 
-        //distance = Mathf.Clamp(distance - Input.GetAxis("Mouse ScrollWheel") * zSpeed, distanceMin, distanceMax);
+        viewScale += -Input.GetAxis("Mouse ScrollWheel") * scrollSpeed * viewScale;
+        viewScale = Mathf.Clamp(viewScale, 0.001f, 1);
+
+        distance = Mathf.Lerp(distanceMin, distanceMax, viewScale);
 
         Vector3 negDistance = new Vector3(0.0f, 0.0f, -distance);
-        Vector3 position = rotation * negDistance + target.position;
+        Vector3 position = rotation * negDistance + target;
 
         transform.rotation = rotation;
         transform.position = position;

@@ -5,9 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using eds.api;
+using eds;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+using eds.api;
 
 [System.Serializable]
 public struct RequestParams
@@ -27,7 +28,7 @@ public static class Requests
     public static async Task GetSystemByName(string[] names)
     {
         List<RequestParams> requests = new List<RequestParams>();
-        foreach(string s in names)
+        foreach (string s in names)
         {
             requests.Add(new RequestParams("name", s));
         }
@@ -56,9 +57,9 @@ public static class Requests
             requests.Add(new RequestParams("name", s));
         }
 
-        var results = await Task.Run(() => api.GetSystemAsync(requests.ToArray()));
+        var results = await Task.Run(() => api.GetFactionAsync(requests.ToArray()));
 
-        GameManager.Events.updateSystems(results);
+        GameManager.Events.updateFactions(results);
     }
     public static async Task GetFactionByID(string[] ids)
     {
@@ -68,28 +69,31 @@ public static class Requests
             requests.Add(new RequestParams("id", s));
         }
 
-        var results = await Task.Run(() => api.GetSystemAsync(requests.ToArray()));
+        var results = await Task.Run(() => api.GetFactionAsync(requests.ToArray()));
 
-        GameManager.Events.updateSystems(results);
+        GameManager.Events.updateFactions(results);
     }
 }
 
+#region blackbox eds.api
 namespace eds.api
 {
     public static class api
     {
         public const string ebgs_url = "https://elitebgs.app/api/ebgs/v5/";
 
+        #pragma warning disable CS1998
         public static async Task<eds.System[]> GetSystemAsync(params RequestParams[] requestParams)
         {
-            return await API_GetSystem(requestParams);
+            return API_GetSystem(requestParams);
         }
         public static async Task<eds.Faction[]> GetFactionAsync(params RequestParams[] requestParams)
         {
-            return await API_GetFaction(requestParams);
+            return API_GetFaction(requestParams);
         }
+        #pragma warning restore CS1998
 
-        public static async Task<eds.System[]> API_GetSystem(params RequestParams[] requestParams)
+        public static eds.System[] API_GetSystem(params RequestParams[] requestParams)
         {
             if (requestParams.Length > 0)
             {
@@ -97,7 +101,7 @@ namespace eds.api
 
                 //elitebgs will only allow us to query 9 systems at a time, so split the requests into pages
                 int i = 0;
-                var query = from s in requestParams let num = i++ group s by num / 9 into g select g.ToArray();
+                var query = from s in requestParams let num = i++ group s by num / 10 into g select g.ToArray();
                 RequestParams[][] requestPages = query.ToArray();
 
                 //loop through each page
@@ -122,7 +126,7 @@ namespace eds.api
                     HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url.ToString());
                     HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                     StreamReader reader = new StreamReader(response.GetResponseStream());
-                    string json = await reader.ReadToEndAsync();
+                    string json = reader.ReadToEnd();
 
                     //Turn the 'docs' node in the json into individual json strings
                     var jsonObject = JObject.Parse(json);
@@ -142,11 +146,11 @@ namespace eds.api
             }
             else
             {
-                Debug.LogError("api.API_GetSystemByName() - No RequestParam provided");
+                Debug.LogError("api.API_GetSystem() - No RequestParam provided");
                 return new eds.System[0];
             }
         }
-        public static async Task<eds.Faction[]> API_GetFaction(params RequestParams[] requestParams)
+        public static eds.Faction[] API_GetFaction(params RequestParams[] requestParams)
         {
             if (requestParams.Length > 0)
             {
@@ -154,7 +158,7 @@ namespace eds.api
 
                 //elitebgs will only allow us to query 9 systems at a time, so split the requests into pages
                 int i = 0;
-                var query = from s in requestParams let num = i++ group s by num / 9 into g select g.ToArray();
+                var query = from s in requestParams let num = i++ group s by num / 10 into g select g.ToArray();
                 RequestParams[][] requestPages = query.ToArray();
 
                 //loop through each page
@@ -179,7 +183,7 @@ namespace eds.api
                     HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url.ToString());
                     HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                     StreamReader reader = new StreamReader(response.GetResponseStream());
-                    string json = await reader.ReadToEndAsync();
+                    string json = reader.ReadToEnd();
 
                     //Turn the 'docs' node in the json into individual json strings
                     var jsonObject = JObject.Parse(json);
@@ -199,9 +203,10 @@ namespace eds.api
             }
             else
             {
-                Debug.LogError("api.API_GetSystemByName() - No RequestParam provided");
+                Debug.LogError("api.API_GetFaction() - No RequestParam provided");
                 return new eds.Faction[0];
             }
         }
     }
 }
+#endregion
