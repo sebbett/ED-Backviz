@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System;
 
 [AddComponentMenu("Camera-Control/Mouse Orbit with zoom")]
 public class MouseOrbit : MonoBehaviour
@@ -9,6 +10,7 @@ public class MouseOrbit : MonoBehaviour
     public float xSpeed = 120.0f;
     public float ySpeed = 120.0f;
     public float followSmoothing = 0.01f;
+    public bool overrideAllowPan = true;
     public bool allowPan = true;
     public bool drawDebug = true;
     public float panSpeed;
@@ -32,6 +34,22 @@ public class MouseOrbit : MonoBehaviour
 
     private Vector3 wantedTarget;
 
+    private void Awake()
+    {
+        GameManager.Events.disableMovement += disableMovment;
+        GameManager.Events.enableMovement += enableMovement;
+    }
+
+    private void disableMovment()
+    {
+        overrideAllowPan = false;
+    }
+
+    private void enableMovement()
+    {
+        overrideAllowPan = true;
+    }
+
     // Use this for initialization
     void Start()
     {
@@ -46,7 +64,7 @@ public class MouseOrbit : MonoBehaviour
         wantedTarget = input;
     }
 
-    void LateUpdate()
+    void Update()
     {
         if (Input.GetKeyDown(KeyCode.Mouse0))
         {
@@ -94,24 +112,27 @@ public class MouseOrbit : MonoBehaviour
         transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles);
 
         //Paning via WASD
-        if (allowPan)
+        if (overrideAllowPan)
         {
-            Vector3 forward = new Vector3(transform.forward.x, 0, transform.forward.z) * Input.GetAxis("forward/back") * panSpeed * Time.deltaTime;
-            Vector3 right = new Vector3(transform.right.x, 0, transform.right.z) * Input.GetAxis("left/right") * panSpeed * Time.deltaTime;
-            Vector3 up = Vector3.up * Input.GetAxis("up/down") * panSpeed * Time.deltaTime;;
-
-            wantedTarget += forward + right + up;
-
-            if (drawDebug)
+            if (allowPan)
             {
-                Debug.DrawRay(target, forward * 5, Color.magenta);
-                Debug.DrawRay(target, right * 5, Color.yellow);
-                Debug.DrawRay(target, up * 5, Color.cyan);
+                Vector3 forward = new Vector3(transform.forward.x, 0, transform.forward.z) * Input.GetAxis("forward/back") * panSpeed * Time.deltaTime;
+                Vector3 right = new Vector3(transform.right.x, 0, transform.right.z) * Input.GetAxis("left/right") * panSpeed * Time.deltaTime;
+                Vector3 up = Vector3.up * Input.GetAxis("up/down") * panSpeed * Time.deltaTime; ;
+
+                wantedTarget += forward + right + up;
+
+                if (drawDebug)
+                {
+                    Debug.DrawRay(target, forward * 5, Color.magenta);
+                    Debug.DrawRay(target, right * 5, Color.yellow);
+                    Debug.DrawRay(target, up * 5, Color.cyan);
+                }
             }
-        }
-        else
-        {
-            allowPan = Vector3.Distance(target, wantedTarget) < 0.01f;
+            else
+            {
+                allowPan = Vector3.Distance(target, wantedTarget) < 0.01f;
+            }
         }
 
         //Smooth follow target
