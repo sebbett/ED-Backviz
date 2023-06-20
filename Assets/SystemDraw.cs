@@ -48,6 +48,7 @@ public class SystemDraw : MonoBehaviour
 
     private void Start()
     {
+        Instantiate(prefab, Vector3.zero, Quaternion.identity);
         MakeRequest();
     }
 

@@ -9,6 +9,7 @@ using eds;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using eds.api;
+using UnityEngine.Rendering.VirtualTexturing;
 
 [System.Serializable]
 public struct RequestParams
@@ -35,7 +36,7 @@ public static class Requests
 
         var results = await Task.Run(() => api.GetSystemAsync(requests.ToArray()));
 
-        GameManager.Events.updateSystems(results);
+        GameManager.Events.updateSystems?.Invoke(results);
     }
     public static async Task GetSystemByID(string[] ids)
     {
@@ -47,7 +48,7 @@ public static class Requests
 
         var results = await Task.Run(() => api.GetSystemAsync(requests.ToArray()));
 
-        GameManager.Events.updateSystems(results);
+        GameManager.Events.updateSystems?.Invoke(results);
     }
     public static async Task GetFactionByName(string[] names)
     {
@@ -59,7 +60,7 @@ public static class Requests
 
         var results = await Task.Run(() => api.GetFactionAsync(requests.ToArray()));
 
-        GameManager.Events.updateFactions(results);
+        GameManager.Events.updateFactions?.Invoke(results);
     }
     public static async Task GetFactionByID(string[] ids)
     {
@@ -71,7 +72,7 @@ public static class Requests
 
         var results = await Task.Run(() => api.GetFactionAsync(requests.ToArray()));
 
-        GameManager.Events.updateFactions(results);
+        GameManager.Events.updateFactions?.Invoke(results);
     }
 }
 
@@ -80,35 +81,84 @@ namespace eds.api
 {
     public static class api
     {
-        public const string ebgs_url = "https://elitebgs.app/api/ebgs/v5/";
-
         #pragma warning disable CS1998
         public static async Task<eds.System[]> GetSystemAsync(params RequestParams[] requestParams)
         {
-            return API_GetSystem(requestParams);
+            //Turn the 'docs' node in the json into individual json strings
+            string[] response = API_Get("systems", requestParams);
+
+            List<eds.System> systems = new List<eds.System>();
+            foreach (string r in response)
+            {
+                var jsonObject = JObject.Parse(r);
+                JArray docsArray = (JArray)jsonObject["docs"];
+                foreach (JToken doc in docsArray)
+                {
+                    // Convert each element to a JSON string
+                    string docJsonString = doc.ToString();
+
+                    //Convert the string to an object and add it to the list
+                    eds.System newSys = Conversions.SystemFromJson(docJsonString);
+
+                    bool found = false;
+                    foreach(eds.System sys in systems)
+                    {
+                        if(sys.id == newSys.id)
+                        {
+                            found = true;
+                        }
+                    }
+
+                    if (!found)
+                    {
+                        systems.Add(newSys);
+                    }
+                }
+            }
+
+            return systems.ToArray();
         }
         public static async Task<eds.Faction[]> GetFactionAsync(params RequestParams[] requestParams)
         {
-            return API_GetFaction(requestParams);
+            //Turn the 'docs' node in the json into individual json strings
+            string[] response = API_Get("factions", requestParams);
+            
+            List<eds.Faction> factions = new List<eds.Faction>();
+            foreach (string r in response)
+            {
+                var jsonObject = JObject.Parse(r);
+                JArray docsArray = (JArray)jsonObject["docs"];
+                foreach (JToken doc in docsArray)
+                {
+                    // Convert each element to a JSON string
+                    string docJsonString = doc.ToString();
+
+                    //Convert the string to an object and add it to the list
+                    factions.Add(Conversions.FactionFromJson(docJsonString));
+                }
+            }
+
+            return factions.ToArray();
         }
         #pragma warning restore CS1998
 
-        public static eds.System[] API_GetSystem(params RequestParams[] requestParams)
+        public const string ebgs_url = "https://elitebgs.app/api/ebgs/v5/";
+        //Agnostic API Getter
+        public static string[] API_Get(string endpoint, params RequestParams[] requestParams)
         {
             if (requestParams.Length > 0)
             {
-                List<eds.System> systems = new List<eds.System>();
-
                 //elitebgs will only allow us to query 9 systems at a time, so split the requests into pages
                 int i = 0;
                 var query = from s in requestParams let num = i++ group s by num / 10 into g select g.ToArray();
                 RequestParams[][] requestPages = query.ToArray();
 
                 //loop through each page
+                List<string> responses = new List<string>();
                 for (int p = 0; p < requestPages.Length; p++)
                 {
                     StringBuilder url = new StringBuilder(ebgs_url);
-                    url.Append("systems");
+                    url.Append(endpoint);
                     //loop through each request on the page
                     for (int r = 0; r < requestPages[p].Length; r++)
                     {
@@ -126,85 +176,15 @@ namespace eds.api
                     HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url.ToString());
                     HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                     StreamReader reader = new StreamReader(response.GetResponseStream());
-                    string json = reader.ReadToEnd();
-
-                    //Turn the 'docs' node in the json into individual json strings
-                    var jsonObject = JObject.Parse(json);
-                    JArray docsArray = (JArray)jsonObject["docs"];
-                    foreach (JToken docToken in docsArray)
-                    {
-                        // Convert each element to a JSON string
-                        string docJsonString = docToken.ToString();
-
-                        // Do something with the JSON string
-                        eds.System sys = Conversions.SystemFromJson(docJsonString);
-                        systems.Add(sys);
-                    }
+                    responses.Add(reader.ReadToEnd());
                 }
 
-                return systems.ToArray();
-            }
-            else
-            {
-                Debug.LogError("api.API_GetSystem() - No RequestParam provided");
-                return new eds.System[0];
-            }
-        }
-        public static eds.Faction[] API_GetFaction(params RequestParams[] requestParams)
-        {
-            if (requestParams.Length > 0)
-            {
-                List<eds.Faction> systems = new List<eds.Faction>();
-
-                //elitebgs will only allow us to query 9 systems at a time, so split the requests into pages
-                int i = 0;
-                var query = from s in requestParams let num = i++ group s by num / 10 into g select g.ToArray();
-                RequestParams[][] requestPages = query.ToArray();
-
-                //loop through each page
-                for (int p = 0; p < requestPages.Length; p++)
-                {
-                    StringBuilder url = new StringBuilder(ebgs_url);
-                    url.Append("factions");
-                    //loop through each request on the page
-                    for (int r = 0; r < requestPages[p].Length; r++)
-                    {
-                        if (r == 0)
-                        {
-                            url.Append($"?{requestPages[p][r].key}={requestPages[p][r].value.Replace(" ", "%20")}");
-                        }
-                        else
-                        {
-                            url.Append($"&{requestPages[p][r].key}={requestPages[p][r].value.Replace(" ", "%20")}");
-                        }
-                    }
-
-                    //Make the request
-                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url.ToString());
-                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                    StreamReader reader = new StreamReader(response.GetResponseStream());
-                    string json = reader.ReadToEnd();
-
-                    //Turn the 'docs' node in the json into individual json strings
-                    var jsonObject = JObject.Parse(json);
-                    JArray docsArray = (JArray)jsonObject["docs"];
-                    foreach (JToken docToken in docsArray)
-                    {
-                        // Convert each element to a JSON string
-                        string docJsonString = docToken.ToString();
-
-                        // Do something with the JSON string
-                        eds.Faction fac = Conversions.FactionFromJson(docJsonString);
-                        systems.Add(fac);
-                    }
-                }
-
-                return systems.ToArray();
+                return responses.ToArray();
             }
             else
             {
                 Debug.LogError("api.API_GetFaction() - No RequestParam provided");
-                return new eds.Faction[0];
+                return null;
             }
         }
     }

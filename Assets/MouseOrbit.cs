@@ -8,6 +8,12 @@ public class MouseOrbit : MonoBehaviour
     
     public float xSpeed = 120.0f;
     public float ySpeed = 120.0f;
+    public float followSmoothing = 0.01f;
+    public bool allowPan = true;
+    public bool drawDebug = true;
+    public float panSpeed;
+    public Transform selectionIndicator;
+
 
     public float yMinLimit = -80f;
     public float yMaxLimit = 80f;
@@ -24,12 +30,20 @@ public class MouseOrbit : MonoBehaviour
     float x = 0.0f;
     float y = 0.0f;
 
+    private Vector3 wantedTarget;
+
     // Use this for initialization
     void Start()
     {
         Vector3 angles = transform.eulerAngles;
         x = angles.y;
         y = angles.x;
+    }
+
+    public void SetTarget(Vector3 input)
+    {
+        allowPan = false;
+        wantedTarget = input;
     }
 
     void LateUpdate()
@@ -78,6 +92,31 @@ public class MouseOrbit : MonoBehaviour
         transform.position = position;
 
         transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles);
+
+        //Paning via WASD
+        if (allowPan)
+        {
+            Vector3 forward = new Vector3(transform.forward.x, 0, transform.forward.z) * Input.GetAxis("forward/back") * panSpeed * Time.deltaTime;
+            Vector3 right = new Vector3(transform.right.x, 0, transform.right.z) * Input.GetAxis("left/right") * panSpeed * Time.deltaTime;
+            Vector3 up = Vector3.up * Input.GetAxis("up/down") * panSpeed * Time.deltaTime;;
+
+            wantedTarget += forward + right + up;
+
+            if (drawDebug)
+            {
+                Debug.DrawRay(target, forward * 5, Color.magenta);
+                Debug.DrawRay(target, right * 5, Color.yellow);
+                Debug.DrawRay(target, up * 5, Color.cyan);
+            }
+        }
+        else
+        {
+            allowPan = Vector3.Distance(target, wantedTarget) < 0.01f;
+        }
+
+        //Smooth follow target
+        target = Vector3.Lerp(target, wantedTarget, followSmoothing);
+        selectionIndicator.position = wantedTarget;
     }
 
     public static float ClampAngle(float angle, float min, float max)
