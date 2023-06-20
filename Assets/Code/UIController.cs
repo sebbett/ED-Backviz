@@ -15,12 +15,24 @@ public class UIController : MonoBehaviour
     public TMP_InputField searchField;
     public TMP_Text noFactionFound;
 
+    [Header("About")]
+    public Canvas aboutCanvas;
+    public Button aboutButton;
+    public Button githubButton;
+    public Button kofiButton;
+    public Button closeButton;
+
     private void Awake()
     {
         GameManager.Events.updateFactions += updateFactions;
         searchField.onSubmit.AddListener((query) => PerformSearch(query));
         searchField.onSelect.AddListener((value) => updateUiState(UIState.search));
         searchField.onDeselect.AddListener((value) => updateUiState(UIState.map));
+
+        aboutButton.onClick.AddListener(() => updateUiState(UIState.about));
+        githubButton.onClick.AddListener(() => OpenGithub());
+        kofiButton.onClick.AddListener(() => OpenKofi());
+        closeButton.onClick.AddListener(() => updateUiState(UIState.map));
     }
 
     private void updateFactions(Faction[] factions)
@@ -38,13 +50,19 @@ public class UIController : MonoBehaviour
     {
         this.uiState = uiState;
 
-        if(this.uiState == UIState.search || this.uiState == UIState.about)
+        switch (this.uiState)
         {
-            GameManager.Events.disableMovement?.Invoke();
-        }
-        else
-        {
-            GameManager.Events.enableMovement?.Invoke();
+            case UIState.search:
+                GameManager.Events.disableMovement();
+                break;
+            case UIState.about:
+                GameManager.Events.disableMovement();
+                aboutCanvas.enabled = true;
+                break;
+            case UIState.map:
+                GameManager.Events.enableMovement();
+                aboutCanvas.enabled = false;
+                break;
         }
     }
 
