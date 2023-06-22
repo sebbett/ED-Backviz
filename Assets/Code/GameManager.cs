@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using eds;
 
-public static class GameManager
+public static class Game
 {
     public static class Events
     {
@@ -22,5 +22,19 @@ public static class GameManager
 
         public delegate void SysButtonClicked(eds.System system);
         public static SysButtonClicked sysButtonClicked;
+
+        public delegate void UpdateGameStatus(string status);
+        public static UpdateGameStatus updateGameStatus;
+    }
+
+    public static class Manager
+    {
+        //TODO: Move the bulk of what's being done in SystemDraw.cs here, we don't need
+        //a monob handling the kinds of things is done. Have SystemDraw init this class
+        //With the values it needs, like the button prefabs, colors, map canvas, and
+        //camera, but the functionality of SystemDraw can be done here.
+
+        //Also need to figure out why spawned buttons don't seem to receive raycasts, but
+        //buttons placed manually do?
     }
 }

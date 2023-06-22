@@ -21,8 +21,8 @@ public class SystemDraw : MonoBehaviour
 
     private void Awake()
     {
-        GameManager.Events.updateSystems += updateSystems;
-        GameManager.Events.updateFactions += updateFactions;
+        Game.Events.updateSystems += updateSystems;
+        Game.Events.updateFactions += updateFactions;
     }
 
     private void updateFactions(Faction[] factions)
@@ -58,11 +58,13 @@ public class SystemDraw : MonoBehaviour
                     Debug.Log("Faction already shown, consider a refresh instead");
                 }
             }
+            Game.Events.updateGameStatus("Factions found, getting presence..");
         }
     }
     private void updateSystems(eds.System[] systems)
     {
-        foreach(eds.System s in systems)
+        Game.Events.updateGameStatus("Systems found, spawning..");
+        foreach (eds.System s in systems)
         {
             bool found = false;
             foreach (eds.System rs in registeredSystems) if(rs.id == s.id) found = true;
@@ -73,23 +75,20 @@ public class SystemDraw : MonoBehaviour
 
                 Debug.Log($"Spawning: {s.name}");
                 GameObject newSystem = Instantiate(systemButtonPrefab, s.position, Quaternion.identity);
-                newSystem.GetComponent<SysButton>().Init(transform);
-                Button b = newSystem.GetComponent<Button>();
-                b.onClick.AddListener(() => onSysButtonClicked(s.id));
-                ColorBlock block = b.colors;
-                block.normalColor = factionColors[newColor];
-                b.colors = block;
-
+                newSystem.GetComponent<SysButton>().Init(s.id, this);
+                newSystem.GetComponent<MeshRenderer>().material.color = factionColors[newColor];
                 newSystem.transform.SetParent(map);
             }
         }
+        Game.Events.sysButtonClicked(systems[0]);
+        Game.Events.updateGameStatus("Done.");
     }
 
     public void onSysButtonClicked(string id)
     {
         foreach(eds.System s in registeredSystems)
         {
-            if (s.id == id) { GameManager.Events.sysButtonClicked(s); Debug.Log($"Clicked: {s.name}!"); }
+            if (s.id == id) { Game.Events.sysButtonClicked(s); Debug.Log($"Clicked: {s.name}!"); }
         }
     }
 }

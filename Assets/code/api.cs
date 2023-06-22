@@ -36,7 +36,7 @@ public static class Requests
 
         var results = await Task.Run(() => api.GetSystemAsync(requests.ToArray()));
 
-        GameManager.Events.updateSystems?.Invoke(results);
+        Game.Events.updateSystems?.Invoke(results);
     }
     public static async Task GetSystemByID(string[] ids)
     {
@@ -48,7 +48,7 @@ public static class Requests
 
         var results = await Task.Run(() => api.GetSystemAsync(requests.ToArray()));
 
-        GameManager.Events.updateSystems?.Invoke(results);
+        Game.Events.updateSystems?.Invoke(results);
     }
     public static async Task GetFactionByName(string[] names)
     {
@@ -60,7 +60,7 @@ public static class Requests
 
         var results = await Task.Run(() => api.GetFactionAsync(requests.ToArray()));
 
-        GameManager.Events.updateFactions?.Invoke(results);
+        Game.Events.updateFactions?.Invoke(results);
     }
     public static async Task GetFactionByID(string[] ids)
     {
@@ -72,7 +72,7 @@ public static class Requests
 
         var results = await Task.Run(() => api.GetFactionAsync(requests.ToArray()));
 
-        GameManager.Events.updateFactions?.Invoke(results);
+        Game.Events.updateFactions?.Invoke(results);
     }
 }
 

@@ -36,8 +36,14 @@ public class MouseOrbit : MonoBehaviour
 
     private void Awake()
     {
-        GameManager.Events.disableMovement += disableMovment;
-        GameManager.Events.enableMovement += enableMovement;
+        Game.Events.disableMovement += disableMovment;
+        Game.Events.enableMovement += enableMovement;
+        Game.Events.sysButtonClicked += sysButtonClicked;
+    }
+
+    private void sysButtonClicked(eds.System system)
+    {
+        wantedTarget = system.position;
     }
 
     private void disableMovment()
@@ -136,7 +142,7 @@ public class MouseOrbit : MonoBehaviour
         }
 
         //Smooth follow target
-        target = Vector3.Lerp(target, wantedTarget, followSmoothing);
+        target = Vector3.Lerp(target, wantedTarget, followSmoothing * Time.deltaTime);
         selectionIndicator.position = wantedTarget;
     }
 

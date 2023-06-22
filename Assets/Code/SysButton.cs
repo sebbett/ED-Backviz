@@ -4,19 +4,22 @@ using UnityEngine;
 
 public class SysButton : MonoBehaviour
 {
-    public Transform lookTarget;
+    string id;
+    SystemDraw sd;
 
-    public void Init(Transform lookTarget)
+    public void Init(string id, SystemDraw sd)
     {
-        Debug.Log("Init()");
-        this.lookTarget = lookTarget;
+        this.id = id;
+        this.sd = sd;
     }
 
-    private void Update()
+    private void OnMouseOver()
     {
-        if(lookTarget != null)
-        {
-            transform.rotation = Quaternion.LookRotation(lookTarget.position - transform.position);
-        }
+        Debug.Log(id);
+    }
+
+    private void OnMouseUpAsButton()
+    {
+        sd.onSysButtonClicked(id);
     }
 }

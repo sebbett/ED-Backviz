@@ -174,4 +174,12 @@ namespace eds
             public DateTime updated_at { get; set; }
         }
     }
+
+    public struct SystemFactionRelation
+    {
+        public string id;
+        public Color color;
+        public Faction faction;
+        public eds.System system;
+    }
 }
