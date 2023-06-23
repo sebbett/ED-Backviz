@@ -177,7 +177,13 @@ namespace eds
 
     public struct FactionColor
     {
-        public Color color;
         public Faction faction;
+        public Color color;
+
+        public FactionColor(Faction f, Color c)
+        {
+            faction = f;
+            color = c;
+        }
     }
 }

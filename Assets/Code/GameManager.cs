@@ -30,5 +30,26 @@ public static class Game
     public static class Manager
     {
         static Dictionary<string, FactionColor> factionColors = new Dictionary<string, FactionColor>();
+        static GameObject systemPrefab;
+        static Color[] colors;
+        static int currentColor = 0;
+
+        internal static void Init(GameObject systemButtonPrefab, Color[] factionColors)
+        {
+            systemPrefab = systemButtonPrefab;
+            colors = factionColors;
+        }
+
+        public static void AddFactions(Faction[] factions)
+        {
+            foreach(Faction f in factions)
+            {
+                if(!factionColors.ContainsKey(f._id) && factionColors.Count < 20)
+                {
+                    factionColors.Add(f._id, new FactionColor(f, colors[currentColor]));
+                    currentColor++;
+                }
+            }
+        }
     }
 }
