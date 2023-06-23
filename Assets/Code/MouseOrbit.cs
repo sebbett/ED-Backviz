@@ -124,7 +124,7 @@ public class MouseOrbit : MonoBehaviour
             {
                 Vector3 forward = new Vector3(transform.forward.x, 0, transform.forward.z) * Input.GetAxis("forward/back") * panSpeed * Time.deltaTime;
                 Vector3 right = new Vector3(transform.right.x, 0, transform.right.z) * Input.GetAxis("left/right") * panSpeed * Time.deltaTime;
-                Vector3 up = Vector3.up * Input.GetAxis("up/down") * panSpeed * Time.deltaTime; ;
+                Vector3 up = Vector3.up * Input.GetAxis("up/down") * panSpeed * Time.deltaTime;
 
                 wantedTarget += forward + right + up;
 

@@ -29,12 +29,6 @@ public static class Game
 
     public static class Manager
     {
-        //TODO: Move the bulk of what's being done in SystemDraw.cs here, we don't need
-        //a monob handling the kinds of things is done. Have SystemDraw init this class
-        //With the values it needs, like the button prefabs, colors, map canvas, and
-        //camera, but the functionality of SystemDraw can be done here.
-
-        //Also need to figure out why spawned buttons don't seem to receive raycasts, but
-        //buttons placed manually do?
+        static Dictionary<string, FactionColor> factionColors = new Dictionary<string, FactionColor>();
     }
 }

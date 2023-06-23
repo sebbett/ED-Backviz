@@ -61,6 +61,27 @@ public static class Requests
         var results = await Task.Run(() => api.GetFactionAsync(requests.ToArray()));
 
         Game.Events.updateFactions?.Invoke(results);
+    } 
+    public static async Task GetFactionByName(string[] names, Action<Faction[]> callback)
+    {
+        List<RequestParams> requests = new List<RequestParams>();
+        foreach (string s in names)
+        {
+            requests.Add(new RequestParams("name", s));
+        }
+
+        var results = await Task.Run(() => api.GetFactionAsync(requests.ToArray()));
+
+        callback(results);
+    }
+    public static async Task SearchFactionByName(string name, Action<Faction[]> callback)
+    {
+        List<RequestParams> requests = new List<RequestParams>();
+        requests.Add(new RequestParams("beginsWith", name));
+
+        var results = await Task.Run(() => api.GetFactionAsync(requests.ToArray()));
+
+        callback(results);
     }
     public static async Task GetFactionByID(string[] ids)
     {

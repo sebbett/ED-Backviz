@@ -2,6 +2,7 @@ using eds;
 using eds.ui;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,6 +16,11 @@ public class UIController : MonoBehaviour
     public TMP_InputField searchField;
     public TMP_Text noFactionFound;
     public Image spinner;
+
+    [Header("SearchSuggestions")]
+    public GameObject searchSuggestionPrefab;
+    public GameObject searchSuggestionBox;
+    private List<GameObject> currentSearchSuggestions = new List<GameObject>();
 
     [Header("Info Panel")]
     public Canvas infoPanel;
@@ -34,6 +40,9 @@ public class UIController : MonoBehaviour
 
 
     private eds.System selectedSystem;
+    private float lastSearchSuggestionsUpdate = 0;
+    private string currentSearchValue;
+    private string lastSearchValue;
 
     private void Awake()
     {
@@ -43,12 +52,57 @@ public class UIController : MonoBehaviour
         searchField.onSubmit.AddListener((query) => PerformSearch(query));
         searchField.onSelect.AddListener((value) => updateUiState(UIState.search));
         searchField.onDeselect.AddListener((value) => updateUiState(UIState.map));
+        searchField.onValueChanged.AddListener((value) => updateCurrentSearchValue(value));
 
         aboutButton.onClick.AddListener(() => updateUiState(UIState.about));
         githubButton.onClick.AddListener(() => OpenGithub());
         kofiButton.onClick.AddListener(() => OpenKofi());
         closeButton.onClick.AddListener(() => updateUiState(UIState.map));
         copyButton.onClick.AddListener(() => CopySystemNameToClipboard());
+    }
+
+    private void updateCurrentSearchValue(string value)
+    {
+        currentSearchValue = value;
+    }
+
+    private void Update()
+    {
+        if(uiState == UIState.search)
+        {
+            if(Time.time > lastSearchSuggestionsUpdate + 1 && currentSearchValue != lastSearchValue)
+            {
+                lastSearchSuggestionsUpdate = Time.time;
+                lastSearchValue = currentSearchValue;
+                updateSearchSuggestions(currentSearchValue);
+            }
+        }
+    }
+
+    private void updateSearchSuggestions(string currentSearchValue)
+    {
+        _ = Requests.SearchFactionByName(currentSearchValue, (factions) => setSearchSuggestionsUiObjects(factions));
+    }
+
+    private void setSearchSuggestionsUiObjects(Faction[] factions)
+    {
+        foreach (GameObject go in currentSearchSuggestions)
+        {
+            Destroy(go);
+        }
+
+        List<GameObject> newSearchSuggestions = new List<GameObject>();
+        foreach(Faction f in factions)
+        {
+            Debug.Log(f.name);
+            GameObject newSuggestion = Instantiate(searchSuggestionPrefab, searchSuggestionBox.transform.position, Quaternion.identity);
+            newSuggestion.transform.SetParent(searchSuggestionBox.transform);
+            newSuggestion.GetComponent<Button>().onClick.AddListener(() => PerformSearch(f.name));
+            newSuggestion.GetComponentInChildren<TMP_Text>().text = f.name;
+            newSearchSuggestions.Add(newSuggestion);
+        }
+
+        currentSearchSuggestions = newSearchSuggestions;
     }
 
     private void CopySystemNameToClipboard()
@@ -92,6 +146,12 @@ public class UIController : MonoBehaviour
 
     public void PerformSearch(string query)
     {
+        if(currentSearchSuggestions.Count > 0)
+            foreach(GameObject go in currentSearchSuggestions)
+            {
+                Destroy(go);
+            }
+
         string[] request = new string[] { query };
         _ = Requests.GetFactionByName(request);
         Game.Events.updateGameStatus("Performing Search...");

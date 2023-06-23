@@ -175,11 +175,9 @@ namespace eds
         }
     }
 
-    public struct SystemFactionRelation
+    public struct FactionColor
     {
-        public string id;
         public Color color;
         public Faction faction;
-        public eds.System system;
     }
 }
