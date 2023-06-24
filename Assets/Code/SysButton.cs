@@ -4,22 +4,25 @@ using UnityEngine;
 
 public class SysButton : MonoBehaviour
 {
-    string id;
-    SystemDraw sd;
+    public GameObject ps_war;
+    public GameObject ps_civilwar;
+    public GameObject ps_election;
+    private eds.System data;
 
-    public void Init(string id, SystemDraw sd)
+    public void Init(eds.System newData)
     {
-        this.id = id;
-        this.sd = sd;
-    }
-
-    private void OnMouseOver()
-    {
-        Debug.Log(id);
+        data = newData;
+        if (data.conflicts.Count > 0)
+        {
+            ps_war.SetActive(data.conflicts[0].type == "war");
+            ps_election.SetActive(data.conflicts[0].type == "election");
+            ps_civilwar.SetActive(data.conflicts[0].type == "civilwar");
+        }
     }
 
     private void OnMouseUpAsButton()
     {
-        sd.onSysButtonClicked(id);
+        Debug.Log("SysButton.OnMouseUpAsButton()");
+        Game.Events.sysButtonClicked(data);
     }
 }

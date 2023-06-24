@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ManagerInit : MonoBehaviour
+public class ManagerComponent : MonoBehaviour
 {
     public GameObject systemButtonPrefab;
     public Color[] factionColors;

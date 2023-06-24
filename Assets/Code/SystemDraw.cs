@@ -19,12 +19,6 @@ public class SystemDraw : MonoBehaviour
     public Color[] factionColors;
     public int newColor = -1;
 
-    private void Awake()
-    {
-        Game.Events.updateSystems += updateSystems;
-        Game.Events.updateFactions += updateFactions;
-    }
-
     private void updateFactions(Faction[] factions)
     {
         if (factions.Length > 0)
@@ -75,20 +69,12 @@ public class SystemDraw : MonoBehaviour
 
                 Debug.Log($"Spawning: {s.name}");
                 GameObject newSystem = Instantiate(systemButtonPrefab, s.position, Quaternion.identity);
-                newSystem.GetComponent<SysButton>().Init(s.id, this);
+                //newSystem.GetComponent<SysButton>().Init(s.id, this);
                 newSystem.GetComponent<MeshRenderer>().material.color = factionColors[newColor];
                 newSystem.transform.SetParent(map);
             }
         }
         Game.Events.sysButtonClicked(systems[0]);
         Game.Events.updateGameStatus("Done.");
-    }
-
-    public void onSysButtonClicked(string id)
-    {
-        foreach(eds.System s in registeredSystems)
-        {
-            if (s.id == id) { Game.Events.sysButtonClicked(s); Debug.Log($"Clicked: {s.name}!"); }
-        }
     }
 }

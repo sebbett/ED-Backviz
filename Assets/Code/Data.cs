@@ -36,7 +36,7 @@ namespace eds
         public string allegiance { get; set; }
 
         [JsonProperty("conflicts")]
-        public List<object> conflicts { get; set; }
+        public List<Conflict> conflicts { get; set; }
 
         [JsonProperty("controlling_minor_faction")]
         public string controlling_minor_faction { get; set; }
@@ -94,6 +94,7 @@ namespace eds
 
         [JsonProperty("name_aliases")]
         public List<object> name_aliases { get; set; }
+
         public class Faction
         {
             [JsonProperty("name")]
@@ -104,6 +105,43 @@ namespace eds
 
             [JsonProperty("faction_id")]
             public string faction_id { get; set; }
+        }
+        public class Conflict
+        {
+            [JsonProperty("type")]
+            public string type { get; set; }
+
+            [JsonProperty("status")]
+            public string status { get; set; }
+
+            [JsonProperty("faction1")]
+            public ConflictFaction faction1 { get; set; }
+
+            [JsonProperty("faction2")]
+            public ConflictFaction faction2 { get; set; }
+        }
+        public class ConflictFaction
+        {
+            [JsonProperty("faction_id")]
+            public string faction_id { get; set; }
+
+            [JsonProperty("name")]
+            public string name { get; set; }
+
+            [JsonProperty("name_lower")]
+            public string name_lower { get; set; }
+
+            [JsonProperty("station_id")]
+            public string station_id { get; set; }
+
+            [JsonProperty("stake")]
+            public string stake { get; set; }
+
+            [JsonProperty("stake_lower")]
+            public string stake_lower { get; set; }
+
+            [JsonProperty("days_won")]
+            public int days_won { get; set; }
         }
     }
 

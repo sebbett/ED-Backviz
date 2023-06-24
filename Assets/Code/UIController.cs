@@ -94,7 +94,6 @@ public class UIController : MonoBehaviour
         List<GameObject> newSearchSuggestions = new List<GameObject>();
         foreach(Faction f in factions)
         {
-            Debug.Log(f.name);
             GameObject newSuggestion = Instantiate(searchSuggestionPrefab, searchSuggestionBox.transform.position, Quaternion.identity);
             newSuggestion.transform.SetParent(searchSuggestionBox.transform);
             newSuggestion.GetComponent<Button>().onClick.AddListener(() => PerformSearch(f.name));
@@ -153,7 +152,7 @@ public class UIController : MonoBehaviour
             }
 
         string[] request = new string[] { query };
-        _ = Requests.GetFactionByName(request);
+        _ = Requests.GetFactionByName(request, (factions) => Game.Manager.AddFactions(factions, true));
         Game.Events.updateGameStatus("Performing Search...");
     }
 

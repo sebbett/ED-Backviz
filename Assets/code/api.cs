@@ -50,6 +50,18 @@ public static class Requests
 
         Game.Events.updateSystems?.Invoke(results);
     }
+    public static async Task GetSystemByID(string[] ids, Action<eds.System[]> callback)
+    {
+        List<RequestParams> requests = new List<RequestParams>();
+        foreach (string s in ids)
+        {
+            requests.Add(new RequestParams("id", s));
+        }
+
+        var results = await Task.Run(() => api.GetSystemAsync(requests.ToArray()));
+
+        callback(results);
+    }
     public static async Task GetFactionByName(string[] names)
     {
         List<RequestParams> requests = new List<RequestParams>();
