@@ -14,13 +14,20 @@ public class UIController : MonoBehaviour
     [Header("Search Bar")]
     public Button searchButton;
     public TMP_InputField searchField;
-    public TMP_Text noFactionFound;
+    public GameObject factionIsTracked;
     public Image spinner;
 
     [Header("SearchSuggestions")]
     public GameObject searchSuggestionPrefab;
     public GameObject searchSuggestionBox;
     private List<GameObject> currentSearchSuggestions = new List<GameObject>();
+
+    [Header("FactionDetails")]
+    public Canvas factionDetailsCanvas;
+    public TMP_Text factionDetailsName;
+    public TMP_Text factionDetailsInfo;
+    public Button factionDetailsClose;
+    public Button factionDetailsTrack;
 
     [Header("Info Panel")]
     public Canvas infoPanel;
@@ -38,7 +45,6 @@ public class UIController : MonoBehaviour
     [Header("Status")]
     public TMP_Text status;
 
-
     private eds.System selectedSystem;
     private float lastSearchSuggestionsUpdate = 0;
     private string currentSearchValue;
@@ -49,7 +55,8 @@ public class UIController : MonoBehaviour
         Game.Events.updateFactions += updateFactions;
         Game.Events.updateGameStatus += updateGameStatus;
         Game.Events.sysButtonClicked += sysButtonClicked;
-        searchField.onSubmit.AddListener((query) => PerformSearch(query));
+
+        //searchField.onSubmit.AddListener((query) => PerformSearch(query));
         searchField.onSelect.AddListener((value) => updateUiState(UIState.search));
         searchField.onDeselect.AddListener((value) => updateUiState(UIState.map));
         searchField.onValueChanged.AddListener((value) => updateCurrentSearchValue(value));
@@ -60,23 +67,21 @@ public class UIController : MonoBehaviour
         closeButton.onClick.AddListener(() => updateUiState(UIState.map));
         copyButton.onClick.AddListener(() => CopySystemNameToClipboard());
     }
-
-    private void updateCurrentSearchValue(string value)
-    {
-        currentSearchValue = value;
-    }
-
     private void Update()
     {
-        if(uiState == UIState.search)
+        if (uiState == UIState.search)
         {
-            if(Time.time > lastSearchSuggestionsUpdate + 1 && currentSearchValue != lastSearchValue)
+            if (currentSearchValue != lastSearchValue)
             {
-                lastSearchSuggestionsUpdate = Time.time;
                 lastSearchValue = currentSearchValue;
                 updateSearchSuggestions(currentSearchValue);
             }
         }
+    }
+
+    private void updateCurrentSearchValue(string value)
+    {
+        currentSearchValue = value;
     }
 
     private void updateSearchSuggestions(string currentSearchValue)
@@ -145,15 +150,43 @@ public class UIController : MonoBehaviour
 
     public void PerformSearch(string query)
     {
-        if(currentSearchSuggestions.Count > 0)
-            foreach(GameObject go in currentSearchSuggestions)
+        if (!Game.Manager.FactionIsTracked(query))
+        {
+            updateUiState(UIState.map);
+            if (currentSearchSuggestions.Count > 0)
             {
-                Destroy(go);
+                foreach (GameObject go in currentSearchSuggestions)
+                {
+                    Destroy(go);
+                }
             }
+            string[] request = new string[] { query };
+            _ = Requests.GetFactionByName(request, (factions) => ShowFactionDetails(factions));
+            Game.Events.updateGameStatus("Performing Search...");
+        }
+        else
+        {
+            StartCoroutine("ShowFactionIsTracked");
+        }
+    }
 
-        string[] request = new string[] { query };
-        _ = Requests.GetFactionByName(request, (factions) => Game.Manager.AddFactions(factions, true));
-        Game.Events.updateGameStatus("Performing Search...");
+    private void ShowFactionDetails(Faction[] factions)
+    {
+        if (factions.Length > 0)
+        {
+            Faction faction = factions[0];
+            factionDetailsName.text = faction.name;
+            factionDetailsInfo.text = ($"Home System: {faction.faction_presence[0].system_name}\nAllegiance: {faction.allegiance}\nGovernment: {faction.government}\nSystems: {faction.faction_presence.Count}\n");
+            factionDetailsClose.onClick.AddListener(() => updateUiState(UIState.map));
+            factionDetailsTrack.onClick.AddListener(() => FactionDetailsBeginTracking(faction));
+            updateUiState(UIState.faction_details);
+        }
+    }
+
+    public void FactionDetailsBeginTracking(Faction faction)
+    {
+        Game.Manager.AddFaction(faction);
+        updateUiState(UIState.map);
     }
 
     public void updateUiState(UIState uiState)
@@ -165,6 +198,10 @@ public class UIController : MonoBehaviour
             case UIState.search:
                 Game.Events.disableMovement();
                 break;
+            case UIState.faction_details:
+                Game.Events.disableMovement();
+                factionDetailsCanvas.enabled = true;
+                break;
             case UIState.about:
                 Game.Events.disableMovement();
                 aboutCanvas.enabled = true;
@@ -172,6 +209,8 @@ public class UIController : MonoBehaviour
             case UIState.map:
                 Game.Events.enableMovement();
                 aboutCanvas.enabled = false;
+                factionDetailsCanvas.enabled = false;
+                Game.Events.updateGameStatus("Done.");
                 break;
         }
     }
@@ -186,11 +225,11 @@ public class UIController : MonoBehaviour
         Application.OpenURL("https://github.com/sebbett/ED-Backviz");
     }
 
-    public IEnumerator ShowNoFactionFound()
+    public IEnumerator ShowFactionIsTracked()
     {
-        noFactionFound.enabled = true;
+        factionIsTracked.SetActive(true);
         yield return new WaitForSeconds(3);
-        noFactionFound.enabled = false;
+        factionIsTracked.SetActive(false);
         Game.Events.updateGameStatus("Done.");
     }
 }
@@ -206,6 +245,7 @@ namespace eds.ui
     {
         search,
         map,
+        faction_details,
         about
     }
 }

@@ -213,9 +213,11 @@ namespace eds
         }
     }
 
+    [global::System.Serializable]
     public struct FactionColor
     {
         public Faction faction;
+        [SerializeField]
         public Color color;
 
         public FactionColor(Faction f, Color c)
@@ -223,5 +225,11 @@ namespace eds
             faction = f;
             color = c;
         }
+    }
+
+    [global::System.Serializable]
+    public struct TrackedFactions
+    {
+        public FactionColor[] trackedFactions;
     }
 }

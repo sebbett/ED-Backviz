@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using UnityEngine;
 using eds;
 using Object = UnityEngine.Object;
+using Newtonsoft.Json;
+using System.IO;
+
 public static class Game
 {
     public static class Events
@@ -29,20 +32,24 @@ public static class Game
 
     public static class Manager
     {
-        static Dictionary<string, FactionColor> factionColors = new Dictionary<string, FactionColor>();
+        public static Dictionary<string, FactionColor> factionColors { get; private set; }
         static Dictionary<string, GameObject> spawnedSystems = new Dictionary<string, GameObject>();
         static GameObject systemPrefab;
         static Color[] colors;
         static int currentColor = 0;
 
-        internal static void Init(GameObject systemButtonPrefab, Color[] factionColors)
+        public static void Init(GameObject systemButtonPrefab, Color[] factionPallete)
         {
-            Debug.Log("Init");
+            factionColors = new Dictionary<string, FactionColor>();
+            Debug.Log("Game.Manager.Init()");
             systemPrefab = systemButtonPrefab;
-            colors = factionColors;
+            colors = factionPallete;
+
+            //ReadFactions();
+            //RedrawSystems(new eds.System[0]);
         }
 
-        public static void AddFactions(Faction[] factions, bool updateSystems)
+        public static void AddFactions(Faction[] factions)
         {
             foreach(Faction f in factions)
             {
@@ -54,21 +61,47 @@ public static class Game
             }
 
             Events.updateGameStatus("Factions found, getting presence..");
+            Debug.Log("Game.Manager.AddFactions(): Redrawing..");
 
-            if (updateSystems)
+            List<string> systemRequestIds = new List<string>();
+            foreach (KeyValuePair<string, FactionColor> kvp in factionColors)
             {
-                List<string> systemRequestIds = new List<string>();
-                foreach(KeyValuePair<string, FactionColor> kvp in factionColors)
+                foreach (eds.Faction.FactionPresence fp in kvp.Value.faction.faction_presence)
                 {
-                    foreach(eds.Faction.FactionPresence fp in kvp.Value.faction.faction_presence)
-                    {
-                        if (!systemRequestIds.Contains(fp.system_id)) systemRequestIds.Add(fp.system_id);
-                    }
+                    if (!systemRequestIds.Contains(fp.system_id)) systemRequestIds.Add(fp.system_id);
                 }
-
-                if (systemRequestIds.Count > 0)
-                    _ = Requests.GetSystemByID(systemRequestIds.ToArray(), (systems) => RedrawSystems(systems));
             }
+
+            if (systemRequestIds.Count > 0)
+                _ = Requests.GetSystemByID(systemRequestIds.ToArray(), (systems) => RedrawSystems(systems));
+
+            //WriteFactions();
+        }
+
+        public static void AddFaction(Faction faction)
+        {
+            if (!factionColors.ContainsKey(faction._id) && factionColors.Count < 20)
+            {
+                factionColors.Add(faction._id, new FactionColor(faction, colors[currentColor]));
+                currentColor++;
+            }
+
+            Events.updateGameStatus("Factions found, getting presence..");
+
+            Debug.Log("Game.Manager.AddFaction(): Redrawing..");
+            List<string> systemRequestIds = new List<string>();
+            foreach (KeyValuePair<string, FactionColor> kvp in factionColors)
+            {
+                foreach (eds.Faction.FactionPresence fp in kvp.Value.faction.faction_presence)
+                {
+                    if (!systemRequestIds.Contains(fp.system_id)) systemRequestIds.Add(fp.system_id);
+                }
+            }
+
+            if (systemRequestIds.Count > 0)
+                _ = Requests.GetSystemByID(systemRequestIds.ToArray(), (systems) => RedrawSystems(systems));
+
+            //WriteFactions();
         }
 
         private static void RedrawSystems(eds.System[] systems)
@@ -79,7 +112,7 @@ public static class Game
             }
             
             spawnedSystems = new Dictionary<string, GameObject>();
-            Events.sysButtonClicked(systems[0]);
+            if(systems.Length > 0) Events.sysButtonClicked(systems[0]);
             foreach(eds.System newSystemData in systems)
             {
                 GameObject newSystem = Object.Instantiate(systemPrefab, newSystemData.position, Quaternion.identity);
@@ -89,7 +122,6 @@ public static class Game
                 {
                     if(kvp.Key == faction)
                     {
-                        Debug.Log("This other thing");
                         newSystem.GetComponent<MeshRenderer>().material.color = factionColors[faction].color;
                     }
                 }
@@ -98,6 +130,35 @@ public static class Game
             }
 
             Events.updateGameStatus("Done.");
+        }
+
+        public static bool FactionIsTracked(string name)
+        {
+            bool value = false;
+            foreach (KeyValuePair<string, FactionColor> kvp in factionColors)
+            {
+                if (kvp.Value.faction.name == name) value = true;
+            }
+
+            return value;
+        }
+
+        private static void ReadFactions()
+        {
+            if (File.Exists("factions.json"))
+            {
+                StreamReader sr = new StreamReader("factions.json");
+                string json = sr.ReadToEnd();
+                factionColors = JsonConvert.DeserializeObject<Dictionary<string, FactionColor>>(json);
+            }
+        }
+
+        private static void WriteFactions()
+        {
+            string json = JsonConvert.SerializeObject(factionColors);
+            StreamWriter sw = new StreamWriter("factions.json");
+            sw.Write(json, Formatting.Indented);
+            sw.Close();
         }
     }
 }

@@ -22,7 +22,6 @@ public class SysButton : MonoBehaviour
 
     private void OnMouseUpAsButton()
     {
-        Debug.Log("SysButton.OnMouseUpAsButton()");
         Game.Events.sysButtonClicked(data);
     }
 }
