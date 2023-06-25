@@ -10,7 +10,10 @@ using UnityEngine.UI;
 public class UIController : MonoBehaviour
 {
     public UIState uiState;
-    
+
+    [Header("Loading Screen")]
+    public Canvas loadingScreen;
+
     [Header("Search Bar")]
     public Button searchButton;
     public TMP_InputField searchField;
@@ -33,7 +36,9 @@ public class UIController : MonoBehaviour
     public Canvas infoPanel;
     public TMP_Text systemName;
     public Button copyButton;
-    public TMP_Text factionsList;
+    public Transform factionsList;
+    public GameObject factionListButtonPrefab;
+    private List<GameObject> factionListButtons = new List<GameObject>();
 
     [Header("About")]
     public Canvas aboutCanvas;
@@ -52,6 +57,8 @@ public class UIController : MonoBehaviour
 
     private void Awake()
     {
+        StartCoroutine("ShowLoadingScreen");
+
         Game.Events.updateFactions += updateFactions;
         Game.Events.updateGameStatus += updateGameStatus;
         Game.Events.sysButtonClicked += sysButtonClicked;
@@ -122,19 +129,34 @@ public class UIController : MonoBehaviour
 
         selectedSystem = system;
 
-        string factions = "";
-        foreach(eds.System.Faction sf in system.factions)
+        if(factionListButtons.Count > 0)
         {
-            if(sf.faction_id == system.controlling_minor_faction_id)
+            foreach(GameObject go in factionListButtons)
             {
-                factions += $"<color=orange>{sf.name}\n[CONTROLLING]</color>\n\n";
+                Destroy(go);
+            }
+        }
+
+        foreach(eds.System.Faction f in system.factions)
+        {
+            GameObject newListItem = Instantiate(factionListButtonPrefab);
+            if (f.faction_id == system.controlling_minor_faction_id)
+            {
+                newListItem.GetComponentInChildren<TMP_Text>().text = $"<color=orange>{f.name}</color>";
             }
             else
             {
-                factions += $"{sf.name}\n\n";
+                newListItem.GetComponentInChildren<TMP_Text>().text = f.name;
             }
+            newListItem.GetComponent<Button>().onClick.AddListener(() => GetFactionDetails(f.name));
+            newListItem.transform.parent = factionsList;
+            factionListButtons.Add(newListItem);
         }
-        factionsList.text = factions;
+    }
+
+    private void GetFactionDetails(string name)
+    {
+        _ = Requests.GetFactionByName(new string[] { name }, (factions) => ShowFactionDetails(factions));
     }
 
     private void updateGameStatus(string status)
@@ -231,6 +253,13 @@ public class UIController : MonoBehaviour
         yield return new WaitForSeconds(3);
         factionIsTracked.SetActive(false);
         Game.Events.updateGameStatus("Done.");
+    }
+
+    public IEnumerator ShowLoadingScreen()
+    {
+        loadingScreen.enabled = true;
+        yield return new WaitForSecondsRealtime(5);
+        loadingScreen.enabled = false;
     }
 }
 

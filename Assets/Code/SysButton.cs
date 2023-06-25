@@ -7,6 +7,7 @@ public class SysButton : MonoBehaviour
     public GameObject ps_war;
     public GameObject ps_civilwar;
     public GameObject ps_election;
+    public GameObject expansion_cubes;
     private eds.System data;
 
     public void Init(eds.System newData)
@@ -17,6 +18,7 @@ public class SysButton : MonoBehaviour
             ps_war.SetActive(data.conflicts[0].type == "war");
             ps_election.SetActive(data.conflicts[0].type == "election");
             ps_civilwar.SetActive(data.conflicts[0].type == "civilwar");
+            //expansion_cubes.SetActive(data.state=="expansion");
         }
     }
 
