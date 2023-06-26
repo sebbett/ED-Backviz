@@ -11,6 +11,14 @@ using System.IO;
 
 public static class Game
 {
+    public static class Settings
+    {
+        public static class Visibility
+        {
+            public static bool expansionCubesVisible = false;
+        }
+    }
+
     public static class Events
     {
         public delegate void GenericEvent();
@@ -141,6 +149,32 @@ public static class Game
             }
 
             return value;
+        }
+
+        public static string FactionStateInSystem(string factionID, string systemID)
+        {
+            string state = "N/A";
+            if (factionColors.ContainsKey(factionID))
+            {
+                foreach(Faction.FactionPresence fp in factionColors[factionID].faction.faction_presence)
+                {
+                    if(fp.system_id == systemID) state = fp.state;
+                }
+            }
+            return state;
+        }
+
+        public static string FactionInfluenceInSystem(string factionID, string systemID)
+        {
+            string influence = "N/A";
+            if (factionColors.ContainsKey(factionID))
+            {
+                foreach (Faction.FactionPresence fp in factionColors[factionID].faction.faction_presence)
+                {
+                    if (fp.system_id == systemID) influence = fp.influence.ToString("##.#%");
+                }
+            }
+            return influence;
         }
 
         private static void ReadFactions()

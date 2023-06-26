@@ -3,6 +3,7 @@ using eds.ui;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,9 +11,6 @@ using UnityEngine.UI;
 public class UIController : MonoBehaviour
 {
     public UIState uiState;
-
-    [Header("Loading Screen")]
-    public Canvas loadingScreen;
 
     [Header("Search Bar")]
     public Button searchButton;
@@ -36,9 +34,17 @@ public class UIController : MonoBehaviour
     public Canvas infoPanel;
     public TMP_Text systemName;
     public Button copyButton;
+    public Button expandButton;
     public Transform factionsList;
     public GameObject factionListButtonPrefab;
+    public Color greenState, yellowState, blueState, redState, greyState;
     private List<GameObject> factionListButtons = new List<GameObject>();
+    
+
+    [Header("Expanded Info Panel")]
+    public GameObject conflictWidgetContainer;
+    public GameObject conflictWidgetPrefab;
+    private List<GameObject> conflictWidgets = new List<GameObject>();
 
     [Header("About")]
     public Canvas aboutCanvas;
@@ -51,14 +57,11 @@ public class UIController : MonoBehaviour
     public TMP_Text status;
 
     private eds.System selectedSystem;
-    private float lastSearchSuggestionsUpdate = 0;
     private string currentSearchValue;
     private string lastSearchValue;
 
     private void Awake()
     {
-        StartCoroutine("ShowLoadingScreen");
-
         Game.Events.updateFactions += updateFactions;
         Game.Events.updateGameStatus += updateGameStatus;
         Game.Events.sysButtonClicked += sysButtonClicked;
@@ -73,7 +76,15 @@ public class UIController : MonoBehaviour
         kofiButton.onClick.AddListener(() => OpenKofi());
         closeButton.onClick.AddListener(() => updateUiState(UIState.map));
         copyButton.onClick.AddListener(() => CopySystemNameToClipboard());
+        expandButton.onClick.AddListener(() => ToggleInfoPanelState());
     }
+
+    private void ToggleInfoPanelState()
+    {
+        if (uiState == UIState.system_details) updateUiState(UIState.map);
+        else updateUiState(UIState.system_details);
+    }
+
     private void Update()
     {
         if (uiState == UIState.search)
@@ -84,6 +95,8 @@ public class UIController : MonoBehaviour
                 updateSearchSuggestions(currentSearchValue);
             }
         }
+
+        infoPanel.GetComponent<Animator>().SetBool("isOpen", uiState == UIState.system_details);
     }
 
     private void updateCurrentSearchValue(string value)
@@ -148,15 +161,35 @@ public class UIController : MonoBehaviour
             {
                 newListItem.GetComponentInChildren<TMP_Text>().text = f.name;
             }
-            newListItem.GetComponent<Button>().onClick.AddListener(() => GetFactionDetails(f.name));
-            newListItem.transform.parent = factionsList;
+
+            string state = Game.Manager.FactionStateInSystem(f.faction_id, system.id);
+            newListItem.transform.Find("$state").transform.Find("$label").GetComponent<TMP_Text>().text = state;
+            newListItem.transform.Find("$state").GetComponent<Image>().color = GetStateColor(state);
+            newListItem.transform.Find("$influence").GetComponent<TMP_Text>().text = Game.Manager.FactionInfluenceInSystem(f.faction_id, system.id);
+            newListItem.GetComponent<Button>().onClick.AddListener(() => PerformSearch(f.name));
+            newListItem.transform.SetParent(factionsList);
             factionListButtons.Add(newListItem);
         }
-    }
 
-    private void GetFactionDetails(string name)
-    {
-        _ = Requests.GetFactionByName(new string[] { name }, (factions) => ShowFactionDetails(factions));
+        if(conflictWidgets.Count > 0)
+        {
+            foreach(GameObject cw in conflictWidgets) Destroy(cw);
+        }
+
+        foreach(eds.System.Conflict conflict in system.conflicts)
+        {
+            GameObject newConflictWidget = Instantiate(conflictWidgetPrefab, Vector3.zero, Quaternion.identity);
+            newConflictWidget.transform.Find("$score").GetComponent<TMP_Text>().text = $"{conflict.faction1.days_won}{conflict.faction2.days_won}";
+            newConflictWidget.transform.Find("$side_a_name").GetComponent<TMP_Text>().text = conflict.faction1.name;
+            newConflictWidget.transform.Find("$side_b_name").GetComponent<TMP_Text>().text = conflict.faction2.name;
+            newConflictWidget.transform.Find("$side_a_stake").GetComponent<TMP_Text>().text = conflict.faction1.stake;
+            newConflictWidget.transform.Find("$side_b_stake").GetComponent<TMP_Text>().text = conflict.faction2.stake;
+            newConflictWidget.transform.Find("$type").GetComponent<TMP_Text>().text = conflict.type;
+            newConflictWidget.transform.Find("$status").GetComponent<TMP_Text>().text = conflict.status;
+
+            newConflictWidget.transform.SetParent(conflictWidgetContainer.transform);
+            conflictWidgets.Add(newConflictWidget);
+        }
     }
 
     private void updateGameStatus(string status)
@@ -172,23 +205,26 @@ public class UIController : MonoBehaviour
 
     public void PerformSearch(string query)
     {
-        if (!Game.Manager.FactionIsTracked(query))
+        if (uiState != UIState.system_details)
         {
-            updateUiState(UIState.map);
-            if (currentSearchSuggestions.Count > 0)
+            if (!Game.Manager.FactionIsTracked(query))
             {
-                foreach (GameObject go in currentSearchSuggestions)
+                updateUiState(UIState.map);
+                if (currentSearchSuggestions.Count > 0)
                 {
-                    Destroy(go);
+                    foreach (GameObject go in currentSearchSuggestions)
+                    {
+                        Destroy(go);
+                    }
                 }
+                string[] request = new string[] { query };
+                _ = Requests.GetFactionByName(request, (factions) => ShowFactionDetails(factions));
+                Game.Events.updateGameStatus("Performing Search...");
             }
-            string[] request = new string[] { query };
-            _ = Requests.GetFactionByName(request, (factions) => ShowFactionDetails(factions));
-            Game.Events.updateGameStatus("Performing Search...");
-        }
-        else
-        {
-            StartCoroutine("ShowFactionIsTracked");
+            else
+            {
+                StartCoroutine("ShowFactionIsTracked");
+            }
         }
     }
 
@@ -224,6 +260,9 @@ public class UIController : MonoBehaviour
                 Game.Events.disableMovement();
                 factionDetailsCanvas.enabled = true;
                 break;
+            case UIState.system_details:
+                Game.Events.disableMovement();
+                break;
             case UIState.about:
                 Game.Events.disableMovement();
                 aboutCanvas.enabled = true;
@@ -255,11 +294,25 @@ public class UIController : MonoBehaviour
         Game.Events.updateGameStatus("Done.");
     }
 
-    public IEnumerator ShowLoadingScreen()
+    public Color GetStateColor(string state)
     {
-        loadingScreen.enabled = true;
-        yield return new WaitForSecondsRealtime(5);
-        loadingScreen.enabled = false;
+        state = state.ToLower();
+
+        string[] greenStates = new string[] {"incursion","infested"};
+        string[] yellowStates = new string[] {"blight","drought","outbreak","infrastructurefailure","naturaldisaster","revolution","coldwar","tradewar","pirateattack","terroristattack","retreat","unhappy","bust","civilunrest"};
+        string[] blueStates = new string[] {"publicholiday","technologicalleap","historicevent","colonisation","expansion","happy","elated","boom","investment","civilliberty"};
+        string[] redStates = new string[] {"war","civilwar","elections","despondent","famine","lockdown"};
+        string[] greyStates = new string[] {"discontented","none"};
+
+        Color value = new Color();
+
+        if (greenStates.Contains(state)) value = greenState;
+        else if (yellowStates.Contains(state)) value = yellowState;
+        else if (blueStates.Contains(state)) value = blueState;
+        else if (redStates.Contains(state)) value = redState;
+        else value = greyState;
+
+        return value;
     }
 }
 
@@ -275,6 +328,7 @@ namespace eds.ui
         search,
         map,
         faction_details,
+        system_details,
         about
     }
 }

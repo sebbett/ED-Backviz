@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 782928031282479300}
   - component: {fileID: 1593847105605279916}
   m_Layer: 0
-  m_Name: ps_war
+  m_Name: ps_conflict
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4840,7 +4840,7 @@ GameObject:
   - component: {fileID: 6713808781925828191}
   - component: {fileID: 5469387601495762502}
   m_Layer: 0
-  m_Name: ps_election
+  m_Name: ps_expansion
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9668,7 +9668,7 @@ GameObject:
   - component: {fileID: 3167583902441587716}
   - component: {fileID: 6913245102030367835}
   m_Layer: 0
-  m_Name: ps_civilwar
+  m_Name: ps_retreat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14795,9 +14795,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa913d2ce9cec114cafce9ce5aa127e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ps_war: {fileID: 468984373700267732}
-  ps_civilwar: {fileID: 5782269831852632244}
-  ps_election: {fileID: 1787595825678671721}
+  ps_conflict: {fileID: 468984373700267732}
+  ps_retreat: {fileID: 5782269831852632244}
+  ps_expansion: {fileID: 1787595825678671721}
   expansion_cubes: {fileID: 6476282595764929957}
 --- !u!135 &-5696974495905829904
 SphereCollider:
