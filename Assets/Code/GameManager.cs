@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 using UnityEngine;
 using eds;
 using Object = UnityEngine.Object;
+using Debug = UnityEngine.Debug;
 using Newtonsoft.Json;
 using System.IO;
+using System.Diagnostics;
 
 public static class Game
 {
@@ -49,12 +51,8 @@ public static class Game
         public static void Init(GameObject systemButtonPrefab, Color[] factionPallete)
         {
             factionColors = new Dictionary<string, FactionColor>();
-            Debug.Log("Game.Manager.Init()");
             systemPrefab = systemButtonPrefab;
             colors = factionPallete;
-
-            //ReadFactions();
-            //RedrawSystems(new eds.System[0]);
         }
 
         public static void AddFactions(Faction[] factions)

@@ -39,7 +39,6 @@ public class UIController : MonoBehaviour
     public GameObject factionListButtonPrefab;
     public Color greenState, yellowState, blueState, redState, greyState;
     private List<GameObject> factionListButtons = new List<GameObject>();
-    
 
     [Header("Expanded Info Panel")]
     public GameObject conflictWidgetContainer;
